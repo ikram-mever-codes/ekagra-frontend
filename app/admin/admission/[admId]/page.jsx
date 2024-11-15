@@ -31,7 +31,7 @@ const AdmissionDetails = ({ params }) => {
       }
     };
     fetchAdm();
-  }, []);
+  }, [admId]);
   console.log(data);
   if (loading || !data) return <Loading />;
   return data === null ? (

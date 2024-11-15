@@ -13,9 +13,7 @@ const FinalStep = () => {
     router.push("/admission-form?step=1");
     return null;
   }
-  useEffect(() => {
-    localStorage.clear("step1Data");
-  }, []);
+  localStorage.clear("step1Data");
   return (
     <Box
       sx={{
