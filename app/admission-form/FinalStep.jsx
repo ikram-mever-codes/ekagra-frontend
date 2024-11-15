@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { CheckCircle } from "@mui/icons-material";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,7 +13,9 @@ const FinalStep = () => {
     router.push("/admission-form?step=1");
     return null;
   }
-
+  useEffect(() => {
+    localStorage.clear("step1Data");
+  }, []);
   return (
     <Box
       sx={{
@@ -46,7 +48,7 @@ const FinalStep = () => {
           marginBottom: "1rem",
         }}
       >
-        Success! Your admission form 2024 is completed.
+        Success! Your admission form is completed.
       </Typography>
       <Typography
         variant="body1"

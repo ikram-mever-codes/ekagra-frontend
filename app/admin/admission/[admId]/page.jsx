@@ -22,13 +22,13 @@ const AdmissionDetails = ({ params }) => {
   useEffect(() => {
     const fetchAdm = async () => {
       setLoading(true);
-      const adm = await viewSingleAdm(admId);
-      console.log(adm);
-      if (!adm) {
+      const adm = await viewSingleAdm(admId, router);
+      if (!adm || adm === null) {
         return router.push("/");
+      } else {
+        setData(adm);
+        setLoading(false);
       }
-      setData(adm);
-      setLoading(false);
     };
     fetchAdm();
   }, []);
@@ -148,9 +148,9 @@ const AdmissionDetails = ({ params }) => {
                   <br />
                   <Link
                     className="w-max h-3 p-2 bg-black text-white rounded-md"
-                    href={data.aadharBacks || "#"}
+                    href={data.aadharBack || "#"}
                   >
-                    View Back Front Image
+                    View Back Back Image
                   </Link>
                 </Grid>
               </Grid>

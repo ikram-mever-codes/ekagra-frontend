@@ -10,17 +10,27 @@ import {
   TableRow,
   Paper,
   Container,
+  IconButton,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { getAllAdms, editAdm, deleteAdm, viewSingleAdm } from "../../api";
 import { Router } from "next/router";
 import { useRouter } from "next/navigation";
-import { Delete, Edit } from "@mui/icons-material";
+import { Delete, Edit, MoreVertRounded } from "@mui/icons-material";
 
 const AdmissionPage = () => {
   const [admissions, setAdmissions] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
 
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
   useEffect(() => {
-    // Fetching all admission records
     const fetchAdmissions = async () => {
       const data = await getAllAdms();
       console.log(data);
@@ -40,11 +50,11 @@ const AdmissionPage = () => {
       setAdmissions(admissions.filter((admission) => admission._id !== id));
     }
   };
+  console.log(admissions);
   const router = useRouter();
   const handleView = (id) => {
     return router.push(`/admin/admission/${id}`);
   };
-
   return (
     <div className="mt-6">
       <TableContainer component={Paper}>
@@ -52,11 +62,12 @@ const AdmissionPage = () => {
           <TableHead>
             <TableRow>
               <TableCell className="text-center">Full Name</TableCell>
-              <TableCell className="text-center">Course Name</TableCell>
+              <TableCell className="text-center">Date</TableCell>
               <TableCell className="text-center">Student Code</TableCell>
-              <TableCell className="text-center">City</TableCell>
               <TableCell className="text-center">Email</TableCell>
               <TableCell className="text-center">Contact Number</TableCell>
+              <TableCell className="text-center">Whatsapp Number</TableCell>
+              <TableCell className="text-center">Course Name</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -67,10 +78,11 @@ const AdmissionPage = () => {
                   {admission.fullName}
                 </TableCell>
                 <TableCell className="text-center">
-                  {admission.course.name}
-                </TableCell>
-                <TableCell className="text-center">
-                  {admission.city.name}
+                  {new Date(admission.createdAt).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </TableCell>
                 <TableCell className="text-center">
                   {admission.studentCode}
@@ -78,6 +90,12 @@ const AdmissionPage = () => {
                 <TableCell className="text-center">{admission.email}</TableCell>
                 <TableCell className="text-center">
                   {admission.mobileNumber || "-"}
+                </TableCell>
+                <TableCell className="text-center">
+                  {admission.whatsappNumber || "-"}
+                </TableCell>
+                <TableCell className="text-center">
+                  {admission.course.name}
                 </TableCell>
                 <TableCell>
                   <Button
@@ -88,14 +106,26 @@ const AdmissionPage = () => {
                     View
                   </Button>
 
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleDelete(admission._id)}
-                    style={{ marginLeft: "10px" }}
+                  <IconButton onClick={handleClick}>
+                    <MoreVertRounded />
+                  </IconButton>
+
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleClose}
                   >
-                    <Delete />
-                  </Button>
+                    <MenuItem
+                      onClick={() => {
+                        handleDelete(admission._id);
+                        handleClose();
+                      }}
+                      style={{ color: "red" }}
+                    >
+                      <Delete style={{ marginRight: "10px" }} />
+                      Delete
+                    </MenuItem>
+                  </Menu>
                 </TableCell>
               </TableRow>
             ))}

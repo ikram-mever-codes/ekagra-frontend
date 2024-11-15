@@ -1,5 +1,6 @@
 import { toast } from "react-toastify";
 export const BASE_URL = "https://api.ekagra.in";
+// export const BASE_URL = "http://localhost:6001";
 
 export const createCity = async (name, code) => {
   try {
@@ -534,7 +535,7 @@ export const getAllAdms = async () => {
   }
 };
 
-export const viewSingleAdm = async (admId) => {
+export const viewSingleAdm = async (admId, router) => {
   try {
     const res = await fetch(`${BASE_URL}/api/v1/adm/${admId}`, {
       credentials: "include",
@@ -545,8 +546,9 @@ export const viewSingleAdm = async (admId) => {
       cache: "no-store",
     });
     const data = await res.json();
-    if (!res.ok) {
-      return toast.error(data.message);
+    if (!res.ok || res.status === 500) {
+      toast.error(data.message);
+      return router.push("/admin/admission");
     }
     return data.adm;
   } catch (error) {

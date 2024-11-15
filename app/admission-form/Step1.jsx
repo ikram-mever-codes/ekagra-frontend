@@ -10,10 +10,14 @@ import {
   Grid,
   Box,
   Checkbox,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
 } from "@mui/material";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
-import { ArrowBack, ArrowForward } from "@mui/icons-material";
+import { AlternateEmail, ArrowBack, ArrowForward } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { BASE_URL } from "../api";
@@ -26,8 +30,10 @@ const validationSchema = Yup.object().shape({
   gender: Yup.string().required("Gender is required"),
   mobileNumber: Yup.string()
     .required("Mobile Number is required")
-    .min(10)
-    .max(10),
+    .min(10, "Must be 10 digits")
+    .max(10, "Must be 10 digits"),
+  isWhatsapp: Yup.string(),
+  whatsappNumber: Yup.string().min(10).max(10),
   email: Yup.string().email("Invalid email").required("Email is required"),
   addressLine1: Yup.string().required("Address Line 1 is required"),
   addressLine2: Yup.string(),
@@ -60,18 +66,22 @@ const Step1 = ({ currentStep }) => {
           addressLine1: "",
           addressLine2: "",
           cityName: "",
+          mobileNumber: "",
+          isWhatsapp: "Yes",
+          whatsappNumber: "",
           pincode: "",
           bloodGroup: "",
           photo: "",
           aadharFront: "",
           aadharBack: "",
           howDidYouKnow: "",
-          termsAccepted: false,
+          termsAccepted: true,
         };
   };
 
   const uploadFile = async (file, fieldName, setFieldValue) => {
     if (!file) return;
+    toast.loading("Uploading Files...");
     const formData = new FormData();
     formData.append("file", file);
     try {
@@ -81,8 +91,12 @@ const Step1 = ({ currentStep }) => {
         },
       });
       const fileUrl = response.data.url;
+      toast.dismiss();
       setFieldValue(fieldName, fileUrl);
+      toast.success("File Uploaded Successfully!");
     } catch (error) {
+      toast.dismiss();
+      toast.error(error.message);
       console.error(`Error uploading ${fieldName}`, error);
     }
   };
@@ -90,10 +104,11 @@ const Step1 = ({ currentStep }) => {
     <Formik
       initialValues={loadInitialValues()}
       validationSchema={validationSchema}
+      validateOnChange={true}
       onSubmit={(values) => {
         localStorage.setItem("step1Data", JSON.stringify(values));
         const nextStep = parseInt(currentStep) + 1;
-        router.push(`/admission-form?step=${nextStep}`);
+        return router.push(`/admission-form?step=${nextStep}`);
       }}
     >
       {({ setFieldValue, errors, touched, values }) => (
@@ -111,6 +126,7 @@ const Step1 = ({ currentStep }) => {
                   helperText={touched.fullName && errors.fullName}
                 />
               </Grid>
+              {/* Father's Name */}
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
@@ -125,6 +141,74 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
+                  label="Email Address"
+                  name="email"
+                  variant="outlined"
+                  fullWidth
+                  error={touched.email && Boolean(errors.email)}
+                  helperText={touched.email && errors.email}
+                />
+              </Grid>{" "}
+              <Grid item xs={12} sm={6}>
+                <Field
+                  as={TextField}
+                  label="Mobile Number"
+                  name="mobileNumber"
+                  variant="outlined"
+                  fullWidth
+                  error={touched.mobileNumber && Boolean(errors.mobileNumber)}
+                  helperText={touched.mobileNumber && errors.mobileNumber}
+                />
+              </Grid>
+              {/* Is WhatsApp */}
+              <Grid item xs={12} sm={6}>
+                <FormControl component="fieldset" fullWidth>
+                  <FormLabel component="legend">
+                    Is this number on WhatsApp?
+                  </FormLabel>
+                  <RadioGroup
+                    row
+                    name="isWhatsapp"
+                    value={values.isWhatsapp}
+                    onChange={(e) => {
+                      setFieldValue("isWhatsapp", e.target.value);
+                    }}
+                  >
+                    <FormControlLabel
+                      value="Yes"
+                      control={<Radio />}
+                      label="Yes"
+                    />
+                    <FormControlLabel
+                      value="No"
+                      control={<Radio />}
+                      label="No"
+                    />
+                  </RadioGroup>
+                  {touched.isWhatsapp && errors.isWhatsapp && (
+                    <FormHelperText error>{errors.isWhatsapp}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+              {values.isWhatsapp === "No" && (
+                <Grid item xs={12} sm={6}>
+                  <Field
+                    as={TextField}
+                    label="WhatsApp Number"
+                    name="whatsappNumber"
+                    variant="outlined"
+                    fullWidth
+                    error={
+                      touched.whatsappNumber && Boolean(errors.whatsappNumber)
+                    }
+                    helperText={touched.whatsappNumber && errors.whatsappNumber}
+                  />
+                </Grid>
+              )}
+              {/* Date of Birth */}
+              <Grid item xs={12} sm={6}>
+                <Field
+                  as={TextField}
                   label="Date of Birth"
                   name="dob"
                   type="date"
@@ -135,19 +219,15 @@ const Step1 = ({ currentStep }) => {
                   helperText={touched.dob && errors.dob}
                 />
               </Grid>
+              {/* Gender */}
               <Grid item xs={12} sm={6}>
-                <FormControl
-                  component="fieldset"
-                  error={touched.gender && Boolean(errors.gender)}
-                  fullWidth
-                >
+                <FormControl component="fieldset" fullWidth>
                   <FormLabel component="legend">Gender</FormLabel>
                   <RadioGroup
                     row
                     name="gender"
                     value={values.gender}
                     onChange={(e) => setFieldValue("gender", e.target.value)}
-                    className="flex justify-around items-center"
                   >
                     <FormControlLabel
                       value="Male"
@@ -160,29 +240,10 @@ const Step1 = ({ currentStep }) => {
                       label="Female"
                     />
                   </RadioGroup>
+                  {touched.gender && (
+                    <FormHelperText error>{errors.gender}</FormHelperText>
+                  )}
                 </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Field
-                  as={TextField}
-                  label="Mobile Number"
-                  name="mobileNumber"
-                  variant="outlined"
-                  fullWidth
-                  error={touched.mobileNumber && Boolean(errors.mobileNumber)}
-                  helperText={touched.mobileNumber && errors.mobileNumber}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Field
-                  as={TextField}
-                  label="Email Address"
-                  name="email"
-                  variant="outlined"
-                  fullWidth
-                  error={touched.email && Boolean(errors.email)}
-                  helperText={touched.email && errors.email}
-                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Field
@@ -228,27 +289,32 @@ const Step1 = ({ currentStep }) => {
                   helperText={touched.pincode && errors.pincode}
                 />
               </Grid>
+              {/* Blood Group */}
               <Grid item xs={12}>
-                <label
-                  htmlFor="bloodGroup"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Blood Group
-                </label>
-                <Field
-                  as="select"
-                  id="bloodGroup"
-                  name="bloodGroup"
-                  className="mt-1 block w-full h-[3.5rem] bg-transparent border border-solid border-[#2C3E50] focuss:border-[#11282E] transition duration-250 ease-in-out p-3 rounded-md shadow-sm sm:text-sm"
-                >
-                  <option value="" disabled>
-                    Select Blood Group
-                  </option>
-                  <option value="A+">A+</option>
-                  <option value="B+">B+</option>
-                  <option value="O+">O+</option>
-                  <option value="AB+">AB+</option>
-                </Field>
+                <FormControl variant="outlined" fullWidth>
+                  <InputLabel>Blood Group</InputLabel>
+                  <Field
+                    as={Select}
+                    name="bloodGroup"
+                    label="Blood Group"
+                    fullWidth
+                    error={touched.bloodGroup && Boolean(errors.bloodGroup)}
+                  >
+                    <MenuItem value="" disabled>
+                      Select Blood Group
+                    </MenuItem>
+                    {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map(
+                      (group) => (
+                        <MenuItem key={group} value={group}>
+                          {group}
+                        </MenuItem>
+                      )
+                    )}
+                  </Field>
+                  {touched.bloodGroup && (
+                    <FormHelperText error>{errors.bloodGroup}</FormHelperText>
+                  )}
+                </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Button variant="outlined" component="label" fullWidth>
@@ -296,7 +362,6 @@ const Step1 = ({ currentStep }) => {
                   <img src={values.photo} alt="Uploaded Photo" width="100" />
                 )}
               </Grid>
-
               <Grid item xs={12}>
                 <label
                   htmlFor="howDidYouKnow"
@@ -309,6 +374,9 @@ const Step1 = ({ currentStep }) => {
                   id="howDidYouKnow"
                   name="howDidYouKnow"
                   className="mt-1 block w-full h-[3.3rem] bg-transparent border border-solid border-[#2C3E50] focuss:border-[#11282E] transition duration-250 ease-in-out p-3 rounded-md shadow-sm sm:text-sm"
+                  onChange={(e) =>
+                    setFieldValue("howDidYouKnow", e.target.value)
+                  }
                 >
                   <option value="" disabled>
                     Select an option
@@ -318,7 +386,25 @@ const Step1 = ({ currentStep }) => {
                   <option value="Social Media">Social Media</option>
                   <option value="Other">Other</option>
                 </Field>
+                {errors.howDidYouKnow && touched.howDidYouKnow && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.howDidYouKnow}
+                  </p>
+                )}
               </Grid>
+              {values.howDidYouKnow === "Other" && (
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    label="Please specify"
+                    name="otherReason"
+                    variant="outlined"
+                    fullWidth
+                    error={touched.otherReason && Boolean(errors.otherReason)}
+                    helperText={touched.otherReason && errors.otherReason}
+                  />
+                </Grid>
+              )}
               <Grid item xs={12}>
                 <FormControlLabel
                   control={

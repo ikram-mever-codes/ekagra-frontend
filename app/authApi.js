@@ -1,4 +1,5 @@
 import { toast } from "react-toastify";
+// export const BASE_URL = "http://localhost:6001";
 const BASE_URL = "https://api.ekagra.in";
 
 export const login = async (email, password, router) => {
@@ -12,15 +13,22 @@ export const login = async (email, password, router) => {
         "Content-Type": "application/json",
       },
     });
+
     const data = await res.json();
+
     if (!res.ok) {
-      return toast.error(data.message);
+      toast.error(data.message || "Login failed.");
+      return;
     }
-    toast.success(data.message);
-    router.push("/");
+
+    toast.success(data.message || "Login successful!");
+    if (router) {
+      await router.push("/");
+    }
+
     return data;
   } catch (error) {
-    return toast.error(error.message);
+    toast.error(error?.message || "An unexpected error occurred.");
   }
 };
 
@@ -36,14 +44,16 @@ export const logout = async (setUser) => {
     });
 
     const data = await res.json();
+
     if (!res.ok) {
-      return toast.error(data.message);
+      toast.error(data.message || "Logout failed.");
+      return;
     }
 
-    toast.success(data.message);
+    toast.success(data.message || "Logout successful!");
     setUser(null);
   } catch (error) {
-    return toast.error(error.message);
+    toast.error(error?.message || "An unexpected error occurred.");
   }
 };
 
@@ -59,12 +69,13 @@ export const refresh = async () => {
     });
 
     const data = await res.json();
+
     if (!res.ok) {
       return null;
     }
-    toast.success(data.message);
+
     return data;
   } catch (error) {
-    console.log(error);
+    console.error("Refresh Error:", error);
   }
 };

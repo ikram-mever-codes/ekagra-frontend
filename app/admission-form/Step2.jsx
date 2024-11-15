@@ -91,7 +91,9 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
         cache: "no-store",
       });
       const orderData = await orderRes.json();
-      console.log(orderData);
+      if (!orderRes.ok) {
+        return toast.error(orderData.message);
+      }
       const admData = { ...formData, amount: amount };
       const stringData = JSON.stringify(admData);
 
@@ -104,7 +106,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
         description: "Payment for Ekgara Course",
         image: "https://avatars.githubusercontent.com/u/177479703?v=4",
         order_id: orderData.order.id,
-        callback_url: `http://localhost:6001/api/v1/adm/payment-verification?admData=${encodedData}`,
+        callback_url: `https://api.ekagra.in/api/v1/adm/payment-verification?admData=${encodedData}`,
         prefill: {
           name: formData.fullName,
           email: formData.email,
@@ -241,6 +243,17 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
         return toast.error(data.message);
       }
 
+      const currentDate = new Date();
+      const startDate = new Date(data.start);
+      const endDate = new Date(data.end);
+
+      if (startDate && currentDate < startDate) {
+        return toast.error("Coupon is not active yet.");
+      }
+      if (endDate && currentDate > endDate) {
+        return toast.error("Coupon has expired.");
+      }
+
       const discount = data.discount;
       const discountAmount = (selectedCourse.price * discount) / 100;
 
@@ -305,6 +318,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
               <FormControlLabel value="UPSC" control={<Radio />} label="UPSC" />
               <FormControlLabel value="BPSC" control={<Radio />} label="BPSC" />
               <FormControlLabel value="SSC" control={<Radio />} label="SSC" />
+              <FormControlLabel value="JEE" control={<Radio />} label="JEE" />
               <FormControlLabel
                 value="other"
                 control={<Radio />}
@@ -314,7 +328,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
                 <TextField
                   label="Specify"
                   name="preparationOther"
-                  value={""}
+                  value={formData.preparation}
                   onChange={handleChange}
                   variant="outlined"
                   fullWidth
@@ -339,7 +353,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             className="mt-1 block w-full h-[3.3rem] bg-transparent border border-solid border-[#2C3E50] focus:border-[#11282E] transition duration-250 ease-in-out p-3 rounded-md shadow-sm sm:text-sm"
             required
           >
-            <option value="" disabled>
+            <option value="" selected disabled>
               Select City
             </option>
             {cities.map((city) => (
@@ -405,7 +419,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             className="mt-1 block w-full h-[3.3rem] bg-transparent border border-solid border-[#2C3E50] focus:border-[#11282E] transition duration-250 ease-in-out p-3 rounded-md shadow-sm sm:text-sm"
             required
           >
-            <option value="" disabled>
+            <option value="" selected disabled>
               Select Course
             </option>
             {courses.map((course) => (

@@ -1,40 +1,26 @@
-// pages/form/AdmissionForm.js
-
 "use client";
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Button,
   Box,
   Typography,
   Container,
   Step,
   StepLabel,
   Stepper,
-  Divider,
-  IconButton,
 } from "@mui/material";
-import { ArrowBack, ArrowForward, Kitesurfing } from "@mui/icons-material";
-import { useSearchParams } from "next/navigation";
 import Step1 from "./Step1";
 import Step2 from "./Step2";
 import FinalStep from "./FinalStep";
-import { createOrder } from "../userApi";
 
 const AdmissionForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentStep = searchParams.get("step") || "1";
+  const currentStep = parseInt(searchParams.get("step") || "1", 10);
   const steps = ["General Details", "Course & Batch", "Payment"];
-  const handleNextStep = async () => {
-    if (currentStep === "2") {
-      let orderData = await createOrder(5000);
-      console.log(orderData);
-    }
-  };
 
   const handlePrevStep = () => {
-    const prevStep = parseInt(currentStep) - 1;
+    const prevStep = currentStep - 1;
     if (prevStep >= 1) {
       router.push(`/admission-form?step=${prevStep}`);
     }
@@ -51,12 +37,9 @@ const AdmissionForm = () => {
         alignItems: "center",
       }}
     >
-      {currentStep === "3" ? (
-        // <div className="w-[100vw] h-full flex justify-center items-center bg-red-400">
+      {currentStep === 3 ? (
         <FinalStep />
       ) : (
-        // </div>
-
         <Box
           sx={{
             margin: "40px 0px",
@@ -77,7 +60,7 @@ const AdmissionForm = () => {
           </Typography>
 
           <Stepper
-            activeStep={currentStep}
+            activeStep={currentStep - 1}
             alternativeLabel
             sx={{
               ".css-1b2ju2j-MuiStepLabel-iconContainer.MuiStepLabel-alternativeLabel":
@@ -96,10 +79,10 @@ const AdmissionForm = () => {
           </Stepper>
 
           <Box sx={{ mt: 4 }}>
-            {currentStep === "1" && <Step1 currentStep={currentStep} />}
+            {currentStep === 1 && <Step1 currentStep={currentStep} />}
           </Box>
           <Box sx={{ mt: 4 }}>
-            {currentStep === "2" && (
+            {currentStep === 2 && (
               <Step2
                 currentStep={currentStep}
                 handlePrevStep={handlePrevStep}

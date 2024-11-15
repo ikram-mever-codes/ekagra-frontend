@@ -332,6 +332,7 @@ const CouponManagementPage = () => {
               margin="dense"
               type="date"
               {...formik.getFieldProps("startDate")}
+              InputLabelProps={{ shrink: true }}
               error={
                 formik.touched.startDate && Boolean(formik.errors.startDate)
               }
