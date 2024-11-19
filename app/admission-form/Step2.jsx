@@ -137,7 +137,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
     const fetchCitiesAndCourses = async () => {
       const courseData = await getAllCourses();
       const cityData = await getAllCities();
-      const couponData = await getAllCoupons("public", "true");
+      const couponData = await getAllCoupons("public", "false", "false");
       setCoupons(couponData.coupons || []);
       setCities(cityData.cities || []);
       setCourses(courseData.courses || []);
@@ -256,7 +256,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
 
       const discount = data.discount;
       const discountAmount = (selectedCourse.price * discount) / 100;
-      if (type && type !== "type") {
+      if (type && type !== data.type) {
         return toast.error("Can not Apply this Coupon");
       }
       if (type === "referral") {

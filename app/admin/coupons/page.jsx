@@ -115,9 +115,8 @@ const CouponManagementPage = () => {
           values.startDate,
           values.endDate
         );
-        setCoupons(
-          coupons.map((c) => (c.id === editCoupon.id ? { ...c, ...values } : c))
-        );
+        const data = await getAllCoupons();
+        setCoupons(data?.coupons || []);
       } else {
         await createCoupon(
           values.title,
@@ -226,7 +225,7 @@ const CouponManagementPage = () => {
           <TableBody>
             {coupons.map((coupon) => (
               <TableRow
-                key={coupon.id}
+                key={coupon._id}
                 hover
                 sx={{ "&:hover": { backgroundColor: "#f5f5f5" } }}
               >

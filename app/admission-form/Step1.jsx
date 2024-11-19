@@ -90,7 +90,11 @@ const Step1 = ({ currentStep }) => {
           "Content-Type": "multipart/form-data",
         },
       });
+      if (response.status === "413") {
+        return toast.error("File size too big!");
+      }
       const fileUrl = response.data.url;
+
       toast.dismiss();
       setFieldValue(fieldName, fileUrl);
       toast.success("File Uploaded Successfully!");
@@ -100,6 +104,8 @@ const Step1 = ({ currentStep }) => {
       console.error(`Error uploading ${fieldName}`, error);
     }
   };
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <Formik
       initialValues={loadInitialValues()}
@@ -126,7 +132,6 @@ const Step1 = ({ currentStep }) => {
                   helperText={touched.fullName && errors.fullName}
                 />
               </Grid>
-              {/* Father's Name */}
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
@@ -141,17 +146,6 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
-                  label="Email Address"
-                  name="email"
-                  variant="outlined"
-                  fullWidth
-                  error={touched.email && Boolean(errors.email)}
-                  helperText={touched.email && errors.email}
-                />
-              </Grid>{" "}
-              <Grid item xs={12} sm={6}>
-                <Field
-                  as={TextField}
                   label="Mobile Number"
                   name="mobileNumber"
                   variant="outlined"
@@ -160,11 +154,22 @@ const Step1 = ({ currentStep }) => {
                   helperText={touched.mobileNumber && errors.mobileNumber}
                 />
               </Grid>
+              <Grid item xs={12} sm={6}>
+                <Field
+                  as={TextField}
+                  label="Email Address"
+                  name="email"
+                  variant="outlined"
+                  fullWidth
+                  error={touched.email && Boolean(errors.email)}
+                  helperText={touched.email && errors.email}
+                />
+              </Grid>{" "}
               {/* Is WhatsApp */}
               <Grid item xs={12} sm={6}>
                 <FormControl component="fieldset" fullWidth>
                   <FormLabel component="legend">
-                    Is this number on WhatsApp?
+                    Is the above Number registered on WhatsApp?{" "}
                   </FormLabel>
                   <RadioGroup
                     row
@@ -215,6 +220,7 @@ const Step1 = ({ currentStep }) => {
                   variant="outlined"
                   fullWidth
                   InputLabelProps={{ shrink: true }}
+                  inputProps={{ max: today }} // Set max attribute to today's date
                   error={touched.dob && Boolean(errors.dob)}
                   helperText={touched.dob && errors.dob}
                 />

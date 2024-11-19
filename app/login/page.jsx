@@ -53,7 +53,7 @@ const LoginPage = () => {
           alignItems: "center",
         }}
       >
-        <Image src="/logo.png" alt="App Logo" width={40} height={40} />
+        <Image src="/logo.png" alt="App Logo" width={80} height={80} />
 
         <Typography
           variant="h4"
