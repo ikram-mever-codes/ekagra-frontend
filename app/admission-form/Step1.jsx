@@ -96,7 +96,7 @@ const Step1 = ({ currentStep }) => {
       toast.success("File Uploaded Successfully!");
     } catch (error) {
       toast.dismiss();
-      toast.error(error.message);
+      toast.error(error.response.data.error || error.message);
       console.error(`Error uploading ${fieldName}`, error);
     }
   };
@@ -329,7 +329,9 @@ const Step1 = ({ currentStep }) => {
                     }}
                   />
                 </Button>
-                {values.aadharFront && <p>{values.aadharFront}</p>}
+                {values.aadharFront && (
+                  <p className="text-[14px] my-2">{values.aadharFront}</p>
+                )}
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Button variant="outlined" component="label" fullWidth>
@@ -343,7 +345,9 @@ const Step1 = ({ currentStep }) => {
                     }}
                   />
                 </Button>
-                {values.aadharBack && <p>{values.aadharBack}</p>}
+                {values.aadharBack && (
+                  <p className="text-[14px] my-2">{values.aadharBack}</p>
+                )}
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Button variant="outlined" component="label" fullWidth>
@@ -359,7 +363,12 @@ const Step1 = ({ currentStep }) => {
                   />
                 </Button>
                 {values.photo && (
-                  <img src={values.photo} alt="Uploaded Photo" width="100" />
+                  <img
+                    src={values.photo}
+                    alt="Uploaded Photo"
+                    width="100"
+                    className=" w-full h-max object-cover object-center my-4 border border-black border-solid rounded-lg"
+                  />
                 )}
               </Grid>
               <Grid item xs={12}>

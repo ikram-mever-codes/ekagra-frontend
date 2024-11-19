@@ -106,7 +106,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
         description: "Payment for Ekgara Course",
         image: "https://avatars.githubusercontent.com/u/177479703?v=4",
         order_id: orderData.order.id,
-        callback_url: `https://api.ekagra.in/api/v1/adm/payment-verification?admData=${encodedData}`,
+        callback_url: `${BASE_URL}/api/v1/adm/payment-verification?admData=${encodedData}`,
         prefill: {
           name: formData.fullName,
           email: formData.email,
@@ -137,7 +137,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
     const fetchCitiesAndCourses = async () => {
       const courseData = await getAllCourses();
       const cityData = await getAllCities();
-      const couponData = await getAllCoupons("public");
+      const couponData = await getAllCoupons("public", "true");
       setCoupons(couponData.coupons || []);
       setCities(cityData.cities || []);
       setCourses(courseData.courses || []);
@@ -256,7 +256,9 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
 
       const discount = data.discount;
       const discountAmount = (selectedCourse.price * discount) / 100;
-
+      if (type && type !== "type") {
+        return toast.error("Can not Apply this Coupon");
+      }
       if (type === "referral") {
         if (isReferenceApplied) {
           setAmount((prev) => prev + discountAmount);

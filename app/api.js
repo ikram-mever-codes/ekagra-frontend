@@ -435,16 +435,19 @@ export const createCoupon = async (name, code, type, discount, start, end) => {
 };
 
 // Get all coupons
-export const getAllCoupons = async (type) => {
+export const getAllCoupons = async (type, expired) => {
   try {
-    const res = await fetch(`${BASE_URL}/api/v1/coupon?type=${type}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${BASE_URL}/api/v1/coupon?type=${type}&expired=${expired || "false"}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        cache: "no-store",
+      }
+    );
     const data = await res.json();
     if (!res.ok) {
       return [];
