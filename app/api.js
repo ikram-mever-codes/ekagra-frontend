@@ -233,7 +233,7 @@ export const createCourse = async (name, description, price, perparation) => {
 export const getAllCourses = async (field) => {
   try {
     const res = await fetch(
-      `${BASE_URL}/api/v1/course/courses?field=${field}`,
+      `${BASE_URL}/api/v1/course/courses?field=${field || ""}`,
       {
         method: "GET",
         headers: {
