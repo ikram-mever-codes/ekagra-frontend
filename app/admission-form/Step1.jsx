@@ -361,7 +361,7 @@ const Step1 = ({ currentStep }) => {
                   <input
                     type="file"
                     hidden
-                    accept="image/*"
+                    accept="image/*,image/webp"
                     onChange={(event) => {
                       const file = event.currentTarget.files[0];
                       uploadFile(file, "photo", setFieldValue);

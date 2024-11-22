@@ -20,6 +20,10 @@ import {
   DialogTitle,
   TextField,
   Tooltip,
+  Select,
+  MenuItem as MuiMenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import { Add, Edit, Delete, MoreVert } from "@mui/icons-material";
 import { useFormik } from "formik";
@@ -30,6 +34,7 @@ import {
   getAllCourses,
   editCourseFunc,
   deleteCourse,
+  getAllPreparationFields,
 } from "@/app/api";
 
 const CourseManagementPage = () => {
@@ -38,6 +43,7 @@ const CourseManagementPage = () => {
   const [editCourse, setEditCourse] = useState(null);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [preparationFields, setPreparationFields] = useState([]);
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Course name is required"),
@@ -45,6 +51,7 @@ const CourseManagementPage = () => {
     price: Yup.number()
       .required("Price is required")
       .positive("Price must be a positive number"),
+    preparation: Yup.object().required("Preparation field is required"),
   });
 
   const formik = useFormik({
@@ -52,30 +59,38 @@ const CourseManagementPage = () => {
       name: editCourse ? editCourse.name : "",
       description: editCourse ? editCourse.description : "",
       price: editCourse ? editCourse.price : "",
+      preparation: {
+        name: editCourse ? editCourse.preparation.name : null,
+        id: editCourse ? editCourse.preparation.id : null,
+      },
     },
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
+      const { name, description, price, preparation } = values;
+
       if (editCourse) {
         await editCourseFunc(
           editCourse._id,
-          values.name,
-          values.description,
-          values.price
+          name,
+          description,
+          price,
+          preparation
         );
         setCourses((prevCourses) =>
           prevCourses.map((course) =>
-            course.id === editCourse.id ? { ...course, ...values } : course
+            course._id === editCourse._id ? { ...course, ...values } : course
           )
         );
       } else {
-        await createCourse(values.name, values.description, values.price);
+        await createCourse(name, description, price, preparation);
         setCourses((prev) => [
           ...prev,
           {
-            name: values.name,
-            description: values.description,
-            price: values.price,
+            name,
+            description,
+            price,
+            preparation,
           },
         ]);
       }
@@ -104,6 +119,7 @@ const CourseManagementPage = () => {
       name: selectedCourse.name,
       description: selectedCourse.description,
       price: selectedCourse.price,
+      preparation: selectedCourse.preparation,
     });
     setOpen(true);
     handleCloseMenu();
@@ -120,6 +136,8 @@ const CourseManagementPage = () => {
   };
 
   const fetchAllCourses = async () => {
+    const prep = await getAllPreparationFields();
+    setPreparationFields(prep || []);
     const courses = await getAllCourses();
     setCourses(courses.courses || []);
   };
@@ -161,40 +179,21 @@ const CourseManagementPage = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell
-                sx={{
-                  fontWeight: "bold",
-                  backgroundColor: theme.palette.grey[100],
-                  padding: "16px",
-                }}
-              >
+              <TableCell sx={{ fontWeight: "bold", padding: "16px" }}>
                 Course Name
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: "bold",
-                  backgroundColor: theme.palette.grey[100],
-                  padding: "16px",
-                }}
-              >
+              <TableCell sx={{ fontWeight: "bold", padding: "16px" }}>
                 Description
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: "bold",
-                  backgroundColor: theme.palette.grey[100],
-                  padding: "16px",
-                }}
-              >
+              <TableCell sx={{ fontWeight: "bold", padding: "16px" }}>
                 Price
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold", padding: "16px" }}>
+                Preparation
               </TableCell>
               <TableCell
                 align="right"
-                sx={{
-                  fontWeight: "bold",
-                  backgroundColor: theme.palette.grey[100],
-                  padding: "16px",
-                }}
+                sx={{ fontWeight: "bold", padding: "16px" }}
               >
                 Actions
               </TableCell>
@@ -212,6 +211,9 @@ const CourseManagementPage = () => {
                   {course.description}
                 </TableCell>
                 <TableCell sx={{ padding: "16px" }}>₹{course.price}</TableCell>
+                <TableCell sx={{ padding: "16px" }}>
+                  {course?.preparation?.name || "-"}
+                </TableCell>
                 <TableCell align="right" sx={{ padding: "16px" }}>
                   <Tooltip title="Options">
                     <IconButton
@@ -290,12 +292,42 @@ const CourseManagementPage = () => {
               helperText={formik.touched.price && formik.errors.price}
               sx={{ mb: 2 }}
             />
+            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+              <InputLabel>Preparation</InputLabel>
+              <Select
+                label="Preparation"
+                name="preparation"
+                value={
+                  formik.values.preparation
+                    ? JSON.stringify(formik.values.preparation)
+                    : ""
+                }
+                onChange={(e) => {
+                  const selectedPreparation = JSON.parse(e.target.value);
+                  formik.setFieldValue("preparation", selectedPreparation);
+                }}
+                error={
+                  formik.touched.preparation &&
+                  Boolean(formik.errors.preparation)
+                }
+              >
+                {preparationFields.map((prep) => (
+                  <MuiMenuItem
+                    key={prep._id}
+                    value={JSON.stringify({ name: prep.name, id: prep._id })}
+                  >
+                    {prep.name}
+                  </MuiMenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <DialogActions>
               <Button onClick={() => setOpen(false)} variant="outlined">
                 Cancel
               </Button>
               <Button type="submit" variant="contained" color="primary">
-                {editCourse ? "Save" : "Add"}
+                {editCourse ? "Update" : "Add"} Course
               </Button>
             </DialogActions>
           </form>

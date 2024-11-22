@@ -16,6 +16,7 @@ import {
   getAllCities,
   getAllCoupons,
   getAllCourses,
+  getAllPreparationFields,
   getCityBranches,
   getCourseBatches,
 } from "../api";
@@ -28,7 +29,9 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
   const [branches, setBranches] = useState([]);
   const [courses, setCourses] = useState([]);
   const [batches, setBatches] = useState([]);
+  const [preparationFields, setPreparationFields] = useState([]);
   const [couponList, setCouponList] = useState([]);
+  const [selectedField, setSelectedField] = useState("");
   const [isCouponApplied, setIsCouponApplied] = useState(false);
   const [isReferenceApplied, setIsReferenceApplied] = useState(false);
   const [formData, setFormData] = useState({
@@ -135,15 +138,25 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
     setFormData({ ...formData, ...step1Data });
 
     const fetchCitiesAndCourses = async () => {
-      const courseData = await getAllCourses();
       const cityData = await getAllCities();
+      let preps = await getAllPreparationFields();
       const couponData = await getAllCoupons("public", "false", "false");
       setCoupons(couponData.coupons || []);
       setCities(cityData.cities || []);
-      setCourses(courseData.courses || []);
+      setPreparationFields(preps);
     };
     fetchCitiesAndCourses();
   }, []);
+  const handleFieldChange = async (e) => {
+    const { name, value, type, checked } = e.target;
+    setSelectedField(value);
+    const courseData = await getAllCourses(value);
+    setCourses(courseData.courses || []);
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
 
   const handleCityChange = async (e) => {
     const { value } = e.target;
@@ -169,6 +182,9 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
   };
 
   const handleCourseChange = async (e) => {
+    if (!selectedField) {
+      return toast.error("Please select the preparation field!");
+    }
     const { value } = e.target;
 
     const objData = JSON.parse(value);
@@ -314,18 +330,18 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
               row
               name="preparation"
               value={formData.preparation}
-              onChange={handleChange}
+              onChange={handleFieldChange}
             >
-              <FormControlLabel value="NEET" control={<Radio />} label="NEET" />
-              <FormControlLabel value="UPSC" control={<Radio />} label="UPSC" />
-              <FormControlLabel value="BPSC" control={<Radio />} label="BPSC" />
-              <FormControlLabel value="SSC" control={<Radio />} label="SSC" />
-              <FormControlLabel value="JEE" control={<Radio />} label="JEE" />
-              <FormControlLabel
-                value="other"
-                control={<Radio />}
-                label="Other"
-              />
+              {preparationFields.map((prep) => {
+                return (
+                  <FormControlLabel
+                    key={prep._id}
+                    value={prep.name}
+                    control={<Radio />}
+                    label={prep.name}
+                  />
+                );
+              })}
               {formData.preparation === "other" && (
                 <TextField
                   label="Specify"

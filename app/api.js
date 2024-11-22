@@ -205,7 +205,7 @@ export const deleteBranch = async (id) => {
 };
 
 // Create a new course
-export const createCourse = async (name, description, price) => {
+export const createCourse = async (name, description, price, perparation) => {
   try {
     toast.loading("Creating Course...");
     const res = await fetch(`${BASE_URL}/api/v1/course/courses`, {
@@ -215,7 +215,7 @@ export const createCourse = async (name, description, price) => {
       },
       credentials: "include",
       cache: "no-store",
-      body: JSON.stringify({ name, description, price }),
+      body: JSON.stringify({ name, description, price, perparation }),
     });
     toast.dismiss();
     const data = await res.json();
@@ -230,16 +230,19 @@ export const createCourse = async (name, description, price) => {
 };
 
 // Get all courses
-export const getAllCourses = async () => {
+export const getAllCourses = async (field) => {
   try {
-    const res = await fetch(`${BASE_URL}/api/v1/course/courses`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${BASE_URL}/api/v1/course/courses?field=${field}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        cache: "no-store",
+      }
+    );
     const data = await res.json();
     return data;
   } catch (error) {
@@ -580,5 +583,104 @@ export const deleteAdm = async (id) => {
     return res;
   } catch (error) {
     toast.error(error.message);
+  }
+};
+
+// Create a new preparation
+export const createPreparationField = async (name) => {
+  try {
+    toast.loading("Creating Preparation...");
+    const res = await fetch(`${BASE_URL}/api/v1/course/prep`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({ name }),
+    });
+    toast.dismiss();
+    const data = await res.json();
+    if (!res.ok) {
+      return toast.error(data.message);
+    }
+    toast.success(data.message);
+    return data;
+  } catch (error) {
+    console.log(error);
+    return toast.error("Error creating preparation. Please try again.");
+  }
+};
+
+// Get all preparations
+export const getAllPreparationFields = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/api/v1/course/prep`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      cache: "no-store",
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return [];
+    }
+    return data.prep;
+  } catch (error) {
+    console.log(error);
+    return toast.error("Error fetching preparations. Please try again.");
+  }
+};
+
+// Update a preparation
+export const editPreparationFieldFunc = async (id, name) => {
+  try {
+    toast.loading("Updating Preparation...");
+    const res = await fetch(`${BASE_URL}/api/v1/course/prep`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({ name, preparationId: id }),
+    });
+    toast.dismiss();
+    const data = await res.json();
+    if (!res.ok) {
+      return toast.error(data.message);
+    }
+    toast.success(data.message);
+    return data;
+  } catch (error) {
+    console.log(error);
+    return toast.error("Error updating preparation. Please try again.");
+  }
+};
+
+// Delete a preparation
+export const deletePreparationField = async (id) => {
+  try {
+    toast.loading("Deleting Preparation...");
+    const res = await fetch(`${BASE_URL}/api/v1/course/prep/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      cache: "no-store",
+    });
+    toast.dismiss();
+    const data = await res.json();
+    if (!res.ok) {
+      return toast.error(data.message);
+    }
+    toast.success(data.message);
+    return data;
+  } catch (error) {
+    console.log(error);
+    return toast.error("Error deleting preparation. Please try again.");
   }
 };

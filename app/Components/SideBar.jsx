@@ -21,6 +21,7 @@ import {
   Dashboard,
   DashboardOutlined,
   AdminPanelSettingsOutlined,
+  CastForEducationOutlined,
 } from "@mui/icons-material";
 import { logout } from "../authApi";
 import { useUser } from "../ContextProvider";
@@ -33,6 +34,11 @@ const menuItems = [
     path: "/admin/admission",
   },
   { label: "Courses", icon: <School />, path: "/admin/courses" },
+  {
+    label: "Preparation",
+    icon: <CastForEducationOutlined />,
+    path: "/admin/preparation",
+  },
   { label: "Batch", icon: <Class />, path: "/admin/batch" },
   { label: "City", icon: <LocationCity />, path: "/admin/city" },
   { label: "Branch", icon: <Domain />, path: "/admin/branch" },
