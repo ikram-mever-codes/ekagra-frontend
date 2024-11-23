@@ -26,7 +26,12 @@ import { toast } from "react-toastify";
 const validationSchema = Yup.object().shape({
   fullName: Yup.string().required("Full Name is required"),
   fatherName: Yup.string().required("Father's Name is required"),
-  dob: Yup.date().required("Date of Birth is required"),
+  dob: Yup.date()
+    .required("Date of Birth is required")
+    .max(
+      new Date(new Date().setFullYear(new Date().getFullYear() - 12)),
+      "You must be at least 12 years old"
+    ),
   gender: Yup.string().required("Gender is required"),
   mobileNumber: Yup.string()
     .required("Mobile Number is required")
@@ -75,9 +80,15 @@ const Step1 = ({ currentStep }) => {
           aadharFront: "",
           aadharBack: "",
           howDidYouKnow: "",
-          termsAccepted: true,
+          termsAccepted: false,
         };
   };
+
+  const minAllowedDate = new Date(
+    new Date().setFullYear(new Date().getFullYear() - 12)
+  )
+    .toISOString()
+    .split("T")[0];
 
   const uploadFile = async (file, fieldName, setFieldValue) => {
     if (!file) return;
@@ -104,7 +115,6 @@ const Step1 = ({ currentStep }) => {
       console.error(`Error uploading ${fieldName}`, error);
     }
   };
-  const today = new Date().toISOString().split("T")[0];
 
   return (
     <Formik
@@ -112,6 +122,9 @@ const Step1 = ({ currentStep }) => {
       validationSchema={validationSchema}
       validateOnChange={true}
       onSubmit={(values) => {
+        if (values.isWhatsapp === "No" && !values.whatsappNumber) {
+          return toast.error("Whatsapp Number is required!");
+        }
         localStorage.setItem("step1Data", JSON.stringify(values));
         const nextStep = parseInt(currentStep) + 1;
         return router.push(`/admission-form?step=${nextStep}`);
@@ -220,7 +233,7 @@ const Step1 = ({ currentStep }) => {
                   variant="outlined"
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-                  inputProps={{ max: today }} // Set max attribute to today's date
+                  inputProps={{ max: minAllowedDate }}
                   error={touched.dob && Boolean(errors.dob)}
                   helperText={touched.dob && errors.dob}
                 />

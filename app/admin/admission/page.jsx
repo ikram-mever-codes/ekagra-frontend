@@ -22,6 +22,7 @@ import { Delete, Edit, MoreVertRounded } from "@mui/icons-material";
 const AdmissionPage = () => {
   const [admissions, setAdmissions] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -106,10 +107,6 @@ const AdmissionPage = () => {
                     View
                   </Button>
 
-                  <IconButton onClick={handleClick}>
-                    <MoreVertRounded />
-                  </IconButton>
-
                   <Menu
                     anchorEl={anchorEl}
                     open={Boolean(anchorEl)}
@@ -117,7 +114,7 @@ const AdmissionPage = () => {
                   >
                     <MenuItem
                       onClick={() => {
-                        handleDelete(admission._id);
+                        handleDelete(selectedId);
                         handleClose();
                       }}
                       style={{ color: "red" }}
@@ -126,6 +123,15 @@ const AdmissionPage = () => {
                       Delete
                     </MenuItem>
                   </Menu>
+
+                  <IconButton
+                    onClick={(e) => {
+                      setSelectedId(admission._id);
+                      handleClick(e);
+                    }}
+                  >
+                    <MoreVertRounded />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

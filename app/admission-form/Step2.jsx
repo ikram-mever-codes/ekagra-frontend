@@ -228,6 +228,9 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
       return;
     }
     const objData = JSON.parse(value);
+    if (objData.availableSeats <= 0) {
+      return toast.error("Seats not available in this batch");
+    }
     setFormData({
       ...formData,
       batch: { name: objData.name, id: objData.id },
@@ -476,7 +479,12 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             {batches.map((batch) => (
               <option
                 key={batch._id}
-                value={JSON.stringify({ name: batch.name, id: batch._id })}
+                value={JSON.stringify({
+                  name: batch.name,
+                  id: batch._id,
+                  availableSeats: batch.availableSeats,
+                  totalSeats: batch.totalSeats,
+                })}
               >
                 {batch.name}
               </option>
