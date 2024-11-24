@@ -1,12 +1,12 @@
 "use client";
 import React from "react";
 import { Oval } from "react-loader-spinner";
-const Loading = ({ height }) => {
+const Loading = ({ height, bg }) => {
   return (
     <div
-      className={`w-full h-${
-        height || "screen"
-      } bg-white flex justify-center items-center`}
+      className={`w-full  h-${height || "screen"} flex justify-center bg-${
+        bg || "white"
+      } items-center`}
     >
       <Oval
         visible={true}

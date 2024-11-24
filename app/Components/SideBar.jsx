@@ -35,7 +35,7 @@ const menuItems = [
   },
   { label: "Courses", icon: <School />, path: "/admin/courses" },
   {
-    label: "Preparation",
+    label: "Mode of Preparartion",
     icon: <CastForEducationOutlined />,
     path: "/admin/preparation",
   },

@@ -119,12 +119,17 @@ const AdmissionDetails = ({ params }) => {
                 <strong>Address:</strong> {data.address.addressLine1 || "Nil"},{" "}
                 {data.AddressLine2}
               </Typography>
-              <Typography variant="body1" mb={2}>
+              <Typography variant="body1" mb={0}>
                 <strong>Pincode:</strong> {data.address.pincode}
-                <Typography variant="body1" mb={2}>
+                <Typography variant="body1" mb={0}>
                   <strong>City:</strong> {data.cityName}
                 </Typography>
               </Typography>{" "}
+              <Typography variant="body1" mb={2}>
+                <Typography variant="body1" mb={2}>
+                  <strong>State:</strong> {data.state}
+                </Typography>
+              </Typography>
               <Typography variant="h2" sx={{ marginTop: 4 }}>
                 Aadhar and Payment Information
               </Typography>

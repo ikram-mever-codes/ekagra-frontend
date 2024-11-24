@@ -23,6 +23,7 @@ import {
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { ArrowBackIos, CheckOutlined } from "@mui/icons-material";
+import Loading from "../loading";
 
 const Step2 = ({ currentStep, handlePrevStep }) => {
   const [cities, setCities] = useState([]);
@@ -33,6 +34,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
   const [couponList, setCouponList] = useState([]);
   const [selectedField, setSelectedField] = useState("");
   const [isCouponApplied, setIsCouponApplied] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isReferenceApplied, setIsReferenceApplied] = useState(false);
   const [formData, setFormData] = useState({
     fatherName: "",
@@ -64,8 +66,10 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [amount, setAmount] = useState(0);
   const [coupons, setCoupons] = useState([]);
+  const [couponLoading, setCouponLoading] = useState(false);
   const [showCoupons, setShowCoupons] = useState(false);
   const router = useRouter();
+
   const handleCheckout = async () => {
     try {
       if (
@@ -127,6 +131,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
       return toast.error(error.message);
     }
   };
+
   useEffect(() => {
     const step1Data = JSON.parse(localStorage.getItem("step1Data"));
     console.log(step1Data);
@@ -138,35 +143,33 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
     setFormData({ ...formData, ...step1Data });
 
     const fetchCitiesAndCourses = async () => {
+      setLoading(true);
       const cityData = await getAllCities();
       let preps = await getAllPreparationFields();
       const couponData = await getAllCoupons("public", "false", "false");
+      const courses = await getAllCourses();
       setCoupons(couponData.coupons || []);
+      setCourses(courses.courses);
       setCities(cityData.cities || []);
       setPreparationFields(preps);
+      setLoading(false);
     };
     fetchCitiesAndCourses();
   }, []);
   const handleFieldChange = async (e) => {
-    const { name, value, type, checked } = e.target;
+    const value = e.target.value;
     setSelectedField(value);
-    const courseData = await getAllCourses(value);
-    setCourses(courseData.courses || []);
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      preparation: value,
+    }));
   };
-
   const handleCityChange = async (e) => {
     const { value } = e.target;
     const objData = JSON.parse(value);
-    console.log(objData);
     setFormData({
       ...formData,
       city: { id: objData.id, name: objData.name, code: objData.code },
-      branch: "",
-      batch: "",
     });
 
     if (value) {
@@ -182,11 +185,12 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
   };
 
   const handleCourseChange = async (e) => {
-    if (!selectedField) {
-      return toast.error("Please select the preparation field!");
-    }
     const { value } = e.target;
 
+    setFormData((prev) => ({
+      ...prev,
+      preparation: value,
+    }));
     const objData = JSON.parse(value);
     setFormData({
       ...formData,
@@ -249,6 +253,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
       if (!formData.course.id) {
         return toast.error("Please Select a Course!");
       }
+      setCouponLoading(true);
 
       const res = await fetch(`${BASE_URL}/api/v1/coupon/apply`, {
         method: "POST",
@@ -259,6 +264,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
 
       const data = await res.json();
       if (!res.ok) {
+        setCouponLoading(false);
         return toast.error(data.message);
       }
 
@@ -306,8 +312,10 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
         }
       }
 
+      setCouponLoading(false);
       toast.success("Coupon operation successful!");
     } catch (error) {
+      setCouponLoading(false);
       console.error("Error applying coupon:", error);
       toast.error("An error occurred while applying the coupon.");
     }
@@ -322,13 +330,14 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
       localStorage.setItem("selectedCourse", JSON.stringify(selectedCourse));
     }
   }, [selectedCourse]);
+  if (loading) return <Loading bg={"#F5F5F5"} />;
 
   return (
-    <Box sx={{ mb: 0 }}>
+    <Box>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormControl component="fieldset" required>
-            <FormLabel component="legend">Preparation</FormLabel>
+            <FormLabel component="legend">Mode of Preparation</FormLabel>
             <RadioGroup
               row
               name="preparation"
@@ -364,7 +373,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             htmlFor="city"
             className="block text-sm font-medium text-gray-700"
           >
-            City
+            Classroom City*
           </label>
           <select
             id="city"
@@ -397,10 +406,16 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             htmlFor="branch"
             className="block text-sm font-medium text-gray-700"
           >
-            Branch
+            Branch*
           </label>
           <select
             id="branch"
+            onClick={() => {
+              if (formData.city.id === "") {
+                toast.error("Please select a city first!");
+                return;
+              }
+            }}
             name="branch"
             value={formData.branch}
             onChange={handleBranchChange}
@@ -430,12 +445,12 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             htmlFor="course"
             className="block text-sm font-medium text-gray-700"
           >
-            Course
+            Course*
           </label>
           <select
             id="course"
             name="course"
-            value={formData.course._id}
+            value={formData.course.id}
             onChange={handleCourseChange}
             className="mt-1 block w-full h-[3.3rem] bg-transparent border border-solid border-[#2C3E50] focus:border-[#11282E] transition duration-250 ease-in-out p-3 rounded-md shadow-sm sm:text-sm"
             required
@@ -463,12 +478,18 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             htmlFor="batch"
             className="block text-sm font-medium text-gray-700"
           >
-            Batch
+            Batch*
           </label>
           <select
             id="batch"
             name="batch"
             value={formData.batch}
+            onClick={() => {
+              if (formData.course.id === "") {
+                toast.error("Please select a Course first!");
+                return;
+              }
+            }}
             onChange={handleBatchChange}
             className="mt-1 block w-full h-[3.3rem] bg-transparent border border-solid border-[#2C3E50] focus:border-[#11282E] transition duration-250 ease-in-out p-3 rounded-md shadow-sm sm:text-sm"
             required
@@ -511,6 +532,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
 
           <Button
             variant="contained"
+            disabled={couponLoading}
             sx={{ width: "100%", mt: 2 }}
             onClick={async () => {
               if (formData.couponCode === "") {
@@ -541,10 +563,11 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
           />
           <Button
             variant="contained"
+            disabled={couponLoading}
             sx={{ width: "100%", mt: 2 }}
             onClick={async () => {
               if (formData.referenceCoupon === "") {
-                return toast.error("Please write the Code first");
+                return toast.error("Please write the Coupon Code first");
               }
 
               await handleApplyCoupon("referral", formData.referenceCoupon);

@@ -25,7 +25,15 @@ import { toast } from "react-toastify";
 
 const validationSchema = Yup.object().shape({
   fullName: Yup.string().required("Full Name is required"),
-  fatherName: Yup.string().required("Father's Name is required"),
+  fatherName: Yup.string()
+    .required("Father's Name is required")
+    .test(
+      "is-not-same-as-fullName",
+      "Father's Name must be different from Full Name",
+      function (value) {
+        return value && value !== this.parent.fullName;
+      }
+    ),
   dob: Yup.date()
     .required("Date of Birth is required")
     .max(
@@ -37,12 +45,26 @@ const validationSchema = Yup.object().shape({
     .required("Mobile Number is required")
     .min(10, "Must be 10 digits")
     .max(10, "Must be 10 digits"),
-  isWhatsapp: Yup.string(),
-  whatsappNumber: Yup.string().min(10).max(10),
+  whatsappNumber: Yup.string()
+    .min(10, "Must be 10 digits")
+    .max(10, "Must be 10 digits")
+    .test(
+      "is-not-same-as-mobileNumber",
+      "If WhatsApp number is the same as Mobile Number, you must select 'Yes'",
+      function (value) {
+        const { mobileNumber, isWhatsapp } = this.parent;
+        if (value && value === mobileNumber && isWhatsapp !== "Yes") {
+          return false;
+        }
+        return true;
+      }
+    ),
+  isWhatsapp: Yup.string().required("Please specify if it's a WhatsApp number"),
   email: Yup.string().email("Invalid email").required("Email is required"),
   addressLine1: Yup.string().required("Address Line 1 is required"),
   addressLine2: Yup.string(),
   cityName: Yup.string().required("City is required"),
+  state: Yup.string().required("State is required"),
   pincode: Yup.string().required("Pincode is required").min(6).max(6),
   bloodGroup: Yup.string().required("Blood Group is required"),
   photo: Yup.mixed().required("Photo is required"),
@@ -53,7 +75,6 @@ const validationSchema = Yup.object().shape({
     .oneOf([true], "Terms must be accepted")
     .required(),
 });
-
 const Step1 = ({ currentStep }) => {
   const router = useRouter();
 
@@ -71,6 +92,7 @@ const Step1 = ({ currentStep }) => {
           addressLine1: "",
           addressLine2: "",
           cityName: "",
+          state: "",
           mobileNumber: "",
           isWhatsapp: "Yes",
           whatsappNumber: "",
@@ -83,6 +105,45 @@ const Step1 = ({ currentStep }) => {
           termsAccepted: false,
         };
   };
+
+  const states = [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
+    "Andaman and Nicobar Islands",
+    "Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu",
+    "Lakshadweep",
+    "Delhi",
+    "Puducherry",
+    "Ladakh",
+    "Lakshadweep",
+  ];
 
   const minAllowedDate = new Date(
     new Date().setFullYear(new Date().getFullYear() - 12)
@@ -130,14 +191,21 @@ const Step1 = ({ currentStep }) => {
         return router.push(`/admission-form?step=${nextStep}`);
       }}
     >
-      {({ setFieldValue, errors, touched, values }) => (
+      {({
+        setFieldValue,
+        errors,
+        touched,
+        values,
+        handleBlur,
+        handleChange,
+      }) => (
         <Form>
           <Box sx={{ mb: 1 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
-                  label="Full Name"
+                  label="Full Name*"
                   name="fullName"
                   variant="outlined"
                   fullWidth
@@ -148,7 +216,7 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
-                  label="Father's Name"
+                  label="Father's Name*"
                   name="fatherName"
                   variant="outlined"
                   fullWidth
@@ -159,7 +227,7 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
-                  label="Mobile Number"
+                  label="Mobile Number*"
                   name="mobileNumber"
                   variant="outlined"
                   fullWidth
@@ -170,7 +238,7 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
-                  label="Email Address"
+                  label="Email Address*"
                   name="email"
                   variant="outlined"
                   fullWidth
@@ -182,7 +250,7 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <FormControl component="fieldset" fullWidth>
                   <FormLabel component="legend">
-                    Is the above Number registered on WhatsApp?{" "}
+                    Is the above Number registered on WhatsApp?
                   </FormLabel>
                   <RadioGroup
                     row
@@ -212,7 +280,7 @@ const Step1 = ({ currentStep }) => {
                 <Grid item xs={12} sm={6}>
                   <Field
                     as={TextField}
-                    label="WhatsApp Number"
+                    label="WhatsApp Number*"
                     name="whatsappNumber"
                     variant="outlined"
                     fullWidth
@@ -227,7 +295,7 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
-                  label="Date of Birth"
+                  label="Date of Birth*"
                   name="dob"
                   type="date"
                   variant="outlined"
@@ -241,7 +309,7 @@ const Step1 = ({ currentStep }) => {
               {/* Gender */}
               <Grid item xs={12} sm={6}>
                 <FormControl component="fieldset" fullWidth>
-                  <FormLabel component="legend">Gender</FormLabel>
+                  <FormLabel component="legend">Gender*</FormLabel>
                   <RadioGroup
                     row
                     name="gender"
@@ -267,7 +335,7 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
-                  label="Address Line 1"
+                  label="Address Line 1*"
                   name="addressLine1"
                   variant="outlined"
                   fullWidth
@@ -289,7 +357,7 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
-                  label="City Name"
+                  label="City*"
                   name="cityName"
                   variant="outlined"
                   fullWidth
@@ -300,7 +368,7 @@ const Step1 = ({ currentStep }) => {
               <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
-                  label="Pincode"
+                  label="Pincode*"
                   name="pincode"
                   variant="outlined"
                   fullWidth
@@ -308,10 +376,35 @@ const Step1 = ({ currentStep }) => {
                   helperText={touched.pincode && errors.pincode}
                 />
               </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl
+                  fullWidth
+                  error={touched.state && Boolean(errors.state)}
+                >
+                  <InputLabel>State*</InputLabel>
+                  <Field
+                    name="state"
+                    as={Select}
+                    label="State*"
+                    value={values.state}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  >
+                    {states.map((state, index) => (
+                      <MenuItem key={index} value={state}>
+                        {state}
+                      </MenuItem>
+                    ))}
+                  </Field>
+                  <FormHelperText>
+                    {touched.state && errors.state}
+                  </FormHelperText>
+                </FormControl>
+              </Grid>
               {/* Blood Group */}
               <Grid item xs={12}>
                 <FormControl variant="outlined" fullWidth>
-                  <InputLabel>Blood Group</InputLabel>
+                  <InputLabel>Blood Group*</InputLabel>
                   <Field
                     as={Select}
                     name="bloodGroup"
@@ -337,7 +430,7 @@ const Step1 = ({ currentStep }) => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Button variant="outlined" component="label" fullWidth>
-                  Upload Aadhar Front
+                  Upload Aadhar Front*
                   <input
                     type="file"
                     hidden
@@ -354,7 +447,7 @@ const Step1 = ({ currentStep }) => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Button variant="outlined" component="label" fullWidth>
-                  Upload Aadhar Back
+                  Upload Aadhar Back*
                   <input
                     type="file"
                     hidden
@@ -370,7 +463,7 @@ const Step1 = ({ currentStep }) => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Button variant="outlined" component="label" fullWidth>
-                  Upload Photo
+                  Upload Photo*
                   <input
                     type="file"
                     hidden
@@ -444,7 +537,7 @@ const Step1 = ({ currentStep }) => {
                       name="termsAccepted"
                     />
                   }
-                  label="I accept the terms and conditions"
+                  label="I accept the terms and conditions*"
                 />
                 {errors.termsAccepted && touched.termsAccepted && (
                   <p className="text-red-500 text-xs mt-1">
