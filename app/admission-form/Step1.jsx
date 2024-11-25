@@ -153,27 +153,37 @@ const Step1 = ({ currentStep }) => {
 
   const uploadFile = async (file, fieldName, setFieldValue) => {
     if (!file) return;
+
     toast.loading("Uploading Files...");
+
     const formData = new FormData();
     formData.append("file", file);
+
     try {
-      const response = await axios.post(`${BASE_URL}/api/v1/upload`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await fetch(`${BASE_URL}/api/v1/upload`, {
+        method: "POST",
+        body: formData,
       });
-      if (response.status === "413") {
-        return toast.error("File size too big!");
+      const data = await response.json();
+      if (response.status === 413) {
+        toast.dismiss();
+        return toast.error(data.error || "File size too big!");
       }
-      const fileUrl = response.data.url;
+
+      if (!response.ok) {
+        toast.dismiss();
+        return toast.error(data.error || "File size too big!");
+      }
+
+      const fileUrl = data.url;
 
       toast.dismiss();
       setFieldValue(fieldName, fileUrl);
       toast.success("File Uploaded Successfully!");
     } catch (error) {
       toast.dismiss();
-      toast.error(error.response.data.error || error.message);
-      console.error(`Error uploading ${fieldName}`, error);
+      toast.error(error.message || "An error occurred");
+      console.error(`Error uploading ${fieldName}:`, error);
     }
   };
 
