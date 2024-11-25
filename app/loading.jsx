@@ -4,7 +4,7 @@ import { Oval } from "react-loader-spinner";
 const Loading = ({ height, bg }) => {
   return (
     <div
-      className={`w-full  h-${height || "screen"} flex justify-center bg-${
+      className={`w-full h-${height || "screen"} flex justify-center bg-${
         bg || "white"
       } items-center`}
     >

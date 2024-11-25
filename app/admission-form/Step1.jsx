@@ -444,6 +444,11 @@ const Step1 = ({ currentStep }) => {
                 {values.aadharFront && (
                   <p className="text-[14px] my-2">{values.aadharFront}</p>
                 )}
+                {errors.aadharFront && touched.aadharFront && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.aadharFront}
+                  </p>
+                )}
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Button variant="outlined" component="label" fullWidth>
@@ -459,6 +464,11 @@ const Step1 = ({ currentStep }) => {
                 </Button>
                 {values.aadharBack && (
                   <p className="text-[14px] my-2">{values.aadharBack}</p>
+                )}
+                {errors.aadharBack && touched.aadharBack && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.aadharBack}
+                  </p>
                 )}
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -481,6 +491,9 @@ const Step1 = ({ currentStep }) => {
                     width="100"
                     className=" w-full h-max object-cover object-center my-4 border border-black border-solid rounded-lg"
                   />
+                )}
+                {errors.photo && touched.photo && (
+                  <p className="text-red-500 text-xs mt-1">{errors.photo}</p>
                 )}
               </Grid>
               <Grid item xs={12}>

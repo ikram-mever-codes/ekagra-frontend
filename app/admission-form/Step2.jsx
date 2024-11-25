@@ -86,7 +86,11 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
+
       const keyData = await keyRes.json();
+      const admData = { ...formData, amount: amount };
+      const stringData = JSON.stringify(admData);
+
       const orderRes = await fetch(`${BASE_URL}/api/v1/adm/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,6 +98,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
           courseId: formData.course.id,
           couponCode: formData.couponCode,
           referenceCode: formData.referenceCoupon,
+          admData,
         }),
         cache: "no-store",
       });
@@ -101,10 +106,6 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
       if (!orderRes.ok) {
         return toast.error(orderData.message);
       }
-      const admData = { ...formData, amount: amount };
-      const stringData = JSON.stringify(admData);
-
-      const encodedData = encodeURIComponent(stringData);
       const options = {
         key: keyData.key,
         amount: orderData.amount,
@@ -113,11 +114,14 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
         description: "Payment for Ekgara Course",
         image: "https://avatars.githubusercontent.com/u/177479703?v=4",
         order_id: orderData.order.id,
-        callback_url: `${BASE_URL}/api/v1/adm/payment-verification?admData=${encodedData}`,
+        callback_url: `${BASE_URL}/api/v1/adm/payment-verification`,
         prefill: {
           name: formData.fullName,
           email: formData.email,
           contact: formData.mobileNumber,
+        },
+        notes: {
+          admDat: stringData,
         },
         theme: {
           color: "#121212",
@@ -166,11 +170,15 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
   };
   const handleCityChange = async (e) => {
     const { value } = e.target;
+
     const objData = JSON.parse(value);
     setFormData({
       ...formData,
       city: { id: objData.id, name: objData.name, code: objData.code },
+      branch: { id: "", name: "", code: "" },
     });
+
+    setBranches([]);
 
     if (value) {
       try {
@@ -183,23 +191,22 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
       setBranches([]);
     }
   };
-
   const handleCourseChange = async (e) => {
     const { value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      preparation: value,
-    }));
     const objData = JSON.parse(value);
     setFormData({
       ...formData,
       course: { name: objData.name, id: objData.id },
-      batch: "",
+      batch: { id: "", name: "" },
     });
-
+    setIsCouponApplied(false);
+    setIsReferenceApplied(false);
+    setCouponList([]);
+    setBatches([]);
     setAmount(objData.amount);
     setSelectedCourse(courses.find((course) => course._id === objData.id));
+
     if (value) {
       try {
         const fetchedBatches = await getCourseBatches(objData.id);
@@ -318,6 +325,8 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
       setCouponLoading(false);
       console.error("Error applying coupon:", error);
       toast.error("An error occurred while applying the coupon.");
+    } finally {
+      setCouponLoading(false);
     }
   };
 
@@ -330,7 +339,12 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
       localStorage.setItem("selectedCourse", JSON.stringify(selectedCourse));
     }
   }, [selectedCourse]);
-  if (loading) return <Loading bg={"#F5F5F5"} />;
+  if (loading)
+    return (
+      <div className="w-[55vw] h-full">
+        <Loading bg={"#F5F5F5"} />;
+      </div>
+    );
 
   return (
     <Box>
@@ -410,14 +424,8 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
           </label>
           <select
             id="branch"
-            onClick={() => {
-              if (formData.city.id === "") {
-                toast.error("Please select a city first!");
-                return;
-              }
-            }}
             name="branch"
-            value={formData.branch}
+            value={formData.branch.id}
             onChange={handleBranchChange}
             className="mt-1 block w-full h-[3.3rem] bg-transparent border border-solid border-[#2C3E50] focus:border-[#11282E] transition duration-250 ease-in-out p-3 rounded-md shadow-sm sm:text-sm"
             required
@@ -450,7 +458,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
           <select
             id="course"
             name="course"
-            value={formData.course.id}
+            value={formData.course._id}
             onChange={handleCourseChange}
             className="mt-1 block w-full h-[3.3rem] bg-transparent border border-solid border-[#2C3E50] focus:border-[#11282E] transition duration-250 ease-in-out p-3 rounded-md shadow-sm sm:text-sm"
             required
@@ -483,7 +491,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
           <select
             id="batch"
             name="batch"
-            value={formData.batch}
+            value={formData.batch.id}
             onClick={() => {
               if (formData.course.id === "") {
                 toast.error("Please select a Course first!");
@@ -494,7 +502,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             className="mt-1 block w-full h-[3.3rem] bg-transparent border border-solid border-[#2C3E50] focus:border-[#11282E] transition duration-250 ease-in-out p-3 rounded-md shadow-sm sm:text-sm"
             required
           >
-            <option value="" disabled>
+            <option value="" disabled selected>
               Select Batch
             </option>
             {batches.map((batch) => (
@@ -521,6 +529,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             Coupon Code
           </label>
           <input
+            disabled={isCouponApplied}
             type="text"
             id="couponCode"
             placeholder="Coupon Code"
@@ -553,6 +562,7 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
             Reference Coupon
           </label>
           <input
+            disabled={isReferenceApplied}
             type="text"
             id="referenceCoupon"
             name="referenceCoupon"
