@@ -22,10 +22,18 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { BASE_URL } from "../api";
 import { toast } from "react-toastify";
-
 const validationSchema = Yup.object().shape({
-  fullName: Yup.string().required("Full Name is required"),
+  fullName: Yup.string()
+    .matches(
+      /^[a-zA-Z\s]*$/,
+      "Full Name cannot contain numbers or special characters"
+    )
+    .required("Full Name is required"),
   fatherName: Yup.string()
+    .matches(
+      /^[a-zA-Z\s]*$/,
+      "Father's Name cannot contain numbers or special characters"
+    )
     .required("Father's Name is required")
     .test(
       "is-not-same-as-fullName",
@@ -42,12 +50,16 @@ const validationSchema = Yup.object().shape({
     ),
   gender: Yup.string().required("Gender is required"),
   mobileNumber: Yup.string()
-    .required("Mobile Number is required")
-    .min(10, "Must be 10 digits")
-    .max(10, "Must be 10 digits"),
+    .matches(
+      /^\d{10}$/,
+      "Mobile Number must be exactly 10 digits and contain only numbers"
+    )
+    .required("Mobile Number is required"),
   whatsappNumber: Yup.string()
-    .min(10, "Must be 10 digits")
-    .max(10, "Must be 10 digits")
+    .matches(
+      /^\d{10}$/,
+      "WhatsApp Number must be exactly 10 digits and contain only numbers"
+    )
     .test(
       "is-not-same-as-mobileNumber",
       "If WhatsApp number is the same as Mobile Number, you must select 'Yes'",
@@ -65,7 +77,9 @@ const validationSchema = Yup.object().shape({
   addressLine2: Yup.string(),
   cityName: Yup.string().required("City is required"),
   state: Yup.string().required("State is required"),
-  pincode: Yup.string().required("Pincode is required").min(6).max(6),
+  pincode: Yup.string()
+    .matches(/^\d{6}$/, "Pincode must be exactly 6 digits")
+    .required("Pincode is required"),
   bloodGroup: Yup.string().required("Blood Group is required"),
   photo: Yup.mixed().required("Photo is required"),
   aadharFront: Yup.mixed().required("Aadhar Front Image is required"),
@@ -75,6 +89,7 @@ const validationSchema = Yup.object().shape({
     .oneOf([true], "Terms must be accepted")
     .required(),
 });
+
 const Step1 = ({ currentStep }) => {
   const router = useRouter();
 
@@ -165,14 +180,10 @@ const Step1 = ({ currentStep }) => {
         body: formData,
       });
       const data = await response.json();
-      if (response.status === 413) {
-        toast.dismiss();
-        return toast.error(data.error || "File size too big!");
-      }
 
       if (!response.ok) {
         toast.dismiss();
-        return toast.error(data.error || "File size too big!");
+        return toast.error(data.error);
       }
 
       const fileUrl = data.url;
@@ -181,8 +192,13 @@ const Step1 = ({ currentStep }) => {
       setFieldValue(fieldName, fileUrl);
       toast.success("File Uploaded Successfully!");
     } catch (error) {
+      console.log(error.message);
       toast.dismiss();
-      toast.error(error.message || "An error occurred");
+      toast.error(
+        error.message.trim() === "Failed to fetch"
+          ? "File size too large!"
+          : error.message
+      );
       console.error(`Error uploading ${fieldName}:`, error);
     }
   };

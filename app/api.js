@@ -1,7 +1,6 @@
 import { toast } from "react-toastify";
 export const BASE_URL = "https://api.ekagra.in";
 // export const BASE_URL = "http://localhost:6001";
-
 export const createCity = async (name, code) => {
   try {
     toast.loading("Creating City...");

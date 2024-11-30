@@ -73,11 +73,11 @@ const Step2 = ({ currentStep, handlePrevStep }) => {
   const handleCheckout = async () => {
     try {
       if (
-        (formData.course.id === "" ||
-          formData.batch.id === "" ||
-          formData.city.id === "" ||
-          formData.branch.id === "",
-        formData.preparation === "")
+        formData.course.id === "" ||
+        formData.batch.id === "" ||
+        formData.city.id === "" ||
+        formData.branch.id === "" ||
+        formData.preparation === ""
       ) {
         return toast.error("Please fill all the fields!");
       }
